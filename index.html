@@ -12,6 +12,135 @@
 
 
 
+[ENABLE]
+ 
+aobscanmodule(goods,RDR2.exe,48 8B D8 48 2B 5F 18) // should be unique
+alloc(newmem,$1000,goods)
+ 
+aobscanmodule(tick,RDR2.exe,48 8B 40 18 48 01 01) // should be unique
+alloc(tickmem,$1000)
+label(tickog)
+label(tickret)
+ 
+label(code)
+label(return)
+ 
+label(_goods)
+registersymbol(_goods)
+ 
+newmem:
+mov rbx,[_goods]
+mov [rdi+18],rbx
+lea rbx,[rdi+18]
+mov qword ptr [_goods+4],rbx
+ 
+code:
+  mov rbx,rax
+  sub rbx,[rdi+18]
+  jmp return
+ 
+_goods:
+dd #100
+dq 00
+ 
+goods:
+  jmp newmem
+  nop 2
+return:
+registersymbol(goods)
+ 
+tickmem:
+add rax,18
+cmp qword ptr [_goods+4],00
+je tickog
+cmp rax, qword ptr [_goods+4]
+jne tickog
+push rbx
+mov rbx,dword ptr [_goods]
+mov [rax],rbx
+pop rbx
+ 
+tickog:
+sub rax,18
+mov rax,[rax+18]
+add [rcx],rax
+jmp tickret
+ 
+tick:
+  jmp tickmem
+  nop 2
+tickret:
+registersymbol(tick)
+ 
+[DISABLE]
+ 
+tick:
+  db 48 8B 40 18 48 01 01
+ 
+goods:
+  db 48 8B D8 48 2B 5F 18
+ 
+unregistersymbol(tick)
+unregistersymbol(_goods)
+unregistersymbol(goods)
+dealloc(tickmem)
+dealloc(newmem)
+ 
+{
+// ORIGINAL CODE - INJECTION POINT: RDR2.exe+767EB4 [[GOODSMEM]]
+ 
+RDR2.exe+767E94: E8 67 2F 00 00  - call RDR2.exe+76AE00
+RDR2.exe+767E99: 48 8B F8        - mov rdi,rax
+RDR2.exe+767E9C: 48 85 C0        - test rax,rax
+RDR2.exe+767E9F: 74 1C           - je RDR2.exe+767EBD
+RDR2.exe+767EA1: 4C 8B 00        - mov r8,[rax]
+RDR2.exe+767EA4: 48 8B C8        - mov rcx,rax
+RDR2.exe+767EA7: 48 8B 56 18     - mov rdx,[rsi+18]
+RDR2.exe+767EAB: 41 FF 50 68     - call qword ptr [r8+68]
+RDR2.exe+767EAF: 48 3B C3        - cmp rax,rbx
+RDR2.exe+767EB2: 74 2A           - je RDR2.exe+767EDE
+// ---------- INJECTING HERE ----------
+RDR2.exe+767EB4: 48 8B D8        - mov rbx,rax
+// ---------- DONE INJECTING  ----------
+RDR2.exe+767EB7: 48 2B 5F 18     - sub rbx,[rdi+18]
+RDR2.exe+767EBB: EB 19           - jmp RDR2.exe+767ED6
+RDR2.exe+767EBD: 45 8B CF        - mov r9d,r15d
+RDR2.exe+767EC0: 4D 8B C4        - mov r8,r12
+RDR2.exe+767EC3: 41 8B D6        - mov edx,r14d
+RDR2.exe+767EC6: 48 8B CE        - mov rcx,rsi
+RDR2.exe+767EC9: E8 F2 3D 00 00  - call RDR2.exe+76BCC0
+RDR2.exe+767ECE: 48 3B C3        - cmp rax,rbx
+RDR2.exe+767ED1: 74 0B           - je RDR2.exe+767EDE
+RDR2.exe+767ED3: 48 8B D8        - mov rbx,rax
+}
+ 
+{
+// ORIGINAL CODE - INJECTION POINT: RDR2.exe+74D2DF [[TICKMEM]]
+ 
+RDR2.exe+74D2BD: 8D 4F FF           - lea ecx,[rdi-01]
+RDR2.exe+74D2C0: 48 03 C9           - add rcx,rcx
+RDR2.exe+74D2C3: 41 8B D4           - mov edx,r12d
+RDR2.exe+74D2C6: 44 8B 44 C8 0C     - mov r8d,[rax+rcx*8+0C]
+RDR2.exe+74D2CB: 49 8B C9           - mov rcx,r9
+RDR2.exe+74D2CE: E8 2D DB 01 00     - call RDR2.exe+76AE00
+RDR2.exe+74D2D3: 45 33 C0           - xor r8d,r8d
+RDR2.exe+74D2D6: 48 85 C0           - test rax,rax
+RDR2.exe+74D2D9: 74 0B              - je RDR2.exe+74D2E6
+RDR2.exe+74D2DB: 49 8B 4D 00        - mov rcx,[r13+00]
+// ---------- INJECTING HERE ----------
+RDR2.exe+74D2DF: 48 8B 40 18        - mov rax,[rax+18]
+// ---------- DONE INJECTING  ----------
+RDR2.exe+74D2E3: 48 01 01           - add [rcx],rax
+RDR2.exe+74D2E6: 0F B7 45 18        - movzx eax,word ptr [rbp+18]
+RDR2.exe+74D2EA: FF C6              - inc esi
+RDR2.exe+74D2EC: 3B F0              - cmp esi,eax
+RDR2.exe+74D2EE: 0F 8C F9 FE FF FF  - jl RDR2.exe+74D1ED
+RDR2.exe+74D2F4: 48 8B 5C 24 50     - mov rbx,[rsp+50]
+RDR2.exe+74D2F9: 48 8B 6C 24 58     - mov rbp,[rsp+58]
+RDR2.exe+74D2FE: 48 8B 74 24 60     - mov rsi,[rsp+60]
+RDR2.exe+74D303: 48 83 C4 20        - add rsp,20
+RDR2.exe+74D307: 41 5F              - pop r15
+}
   
   
  
