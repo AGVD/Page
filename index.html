@@ -8,7 +8,106 @@
   <p style="text-align: center;"><span style="font-size:24px;"><a href="" target="_blank"></a>...............................</span></p>
 
 
+[ENABLE]
+aobscanmodule(maxStats,RDR2.exe,28 41 8B 50 04 C1 C2 10) // should be unique
+alloc(newmem,$100)
 
+label(code)
+label(return)
+
+newmem:
+  pop rax
+  //Write your code here:
+  //maxStats = 100.f
+  mov ecx,[r8+04]
+  push rax
+  push rcx
+  lea rcx,[r8+8]
+  call maxVal_decrypted_read
+  mov edx,eax //max_value
+  pop rcx
+  pop rax
+  not edx
+  rol ecx,10
+  ror ecx,04
+  push rax
+  mov eax,ecx
+  and ecx,F
+  add ecx,4
+  ror edx,cl
+  rol edx,10
+  xor edx,eax
+  mov [r8],edx
+  pop rax
+code:
+  //readmem(maxStats,15)
+  mov edx,[r8+04]
+  rol edx,10
+  ror edx,04
+  mov ecx,edx
+  xor edx,[r8]
+  jmp return
+maxVal_decrypted_read: //rcx=*toStart, out eax
+ enter 0,0
+  push r8
+  push r9
+  push rdx
+  push rcx
+  mov r8d,[rcx+4]
+  mov r9,rcx
+  ror r8d,3
+  rol r8d,10
+  mov ecx,r8d
+  mov edx,[r9]
+  and ecx,0F
+  xor edx,r8d
+  rol edx,10
+  add ecx,05
+  rol edx,cl
+  not edx
+  mov eax,edx
+  pop rcx
+  pop rdx
+  pop r9
+  pop r8
+ leave
+ ret
+align 10,90
+  tempData1:
+    dd 0
+
+maxStats+01:
+  push rax
+  mov rax,newmem
+  jmp rax
+  nop 2
+  
+return:
+registersymbol(maxStats)
+
+[DISABLE]
+
+maxStats+01:
+  db 41 8B 50 04 C1 C2 10 C1 CA 04 8B CA 41 33 10 
+
+unregistersymbol(maxStats)
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: RDR2.exe+187694
+
+RDR2.exe+187686: 0F 2F 05 47 60 13 03  - comiss xmm0,[RDR2.exe+32BD6D4]
+RDR2.exe+18768D: 73 05                 - jae RDR2.exe+187694
+RDR2.exe+18768F: 0F 57 F6              - xorps xmm6,xmm6
+RDR2.exe+187692: EB 28                 - jmp RDR2.exe+1876BC
+// ---------- INJECTING HERE ----------
+RDR2.exe+187694: 41 8B 50 04           - mov edx,[r8+04]
+// ---------- DONE INJECTING  ----------
+RDR2.exe+187698: C1 C2 10              - rol edx,10
+RDR2.exe+18769B: C1 CA 04              - ror edx,04
+RDR2.exe+18769E: 8B CA                 - mov ecx,edx
+RDR2.exe+1876A0: 41 33 10              - xor edx,[r8]
+}
 
 
 
